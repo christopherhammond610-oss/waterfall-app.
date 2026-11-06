@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waterfall | Direct Creator Stream</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-abyss: #070d14;
+      --card-glass: rgba(14, 25, 41, 0.72);
+      --card-border: rgba(0, 242, 254, 0.16);
+      --card-border-hover: rgba(0, 242, 254, 0.45);
+      --text-main: #f0f7ff;
+      --text-muted: #8ca3bf;
+      --accent-cyan: #00f2fe;
+      --accent-teal: #4facfe;
+      --accent-glow: rgba(0, 242, 254, 0.35);
+      --monetize-green: #10e7a1;
+      --monetize-glow: rgba(16, 231, 161, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-abyss);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .ambient-glow-1 {
+      position: fixed;
+      top: -160px;
+      left: 12%;
+      width: 580px;
+      height: 580px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.13) 0%, rgba(79, 172, 254, 0.05) 55%, transparent 75%);
+      filter: blur(85px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      bottom: -160px;
+      right: 12%;
+      width: 620px;
+      height: 620px;
+      background: radial-gradient(circle, rgba(79, 172, 254, 0.11) 0%, rgba(16, 231, 161, 0.04) 55%, transparent 75%);
+      filter: blur(95px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(7, 13, 20, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+      cursor: pointer;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.35rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-block;
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.16), rgba(79, 172, 254, 0.26));
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.18);
+    }
+
+    .profile-nav-trigger {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .avatar-mini {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-glow);
+      object-fit: cover;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 2.2rem auto;
+      padding: 0 1.2rem 4rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .composer-card {
+      background: var(--card-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 1.4rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .composer-top {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .composer-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      resize: none;
+      outline: none;
+      min-height: 75px;
+      line-height: 1.5;
+    }
+
+    .composer-input::placeholder {
+      color: #556b85;
+    }
+
+    .media-preview-box {
+      display: none;
+      position: relative;
+      margin-top: 1rem;
+      border-radius: 16px;
+      overflow: hidden;
+      max-height: 260px;
+      border: 1px solid var(--card-border);
+    }
+
+    .media-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .btn-remove-media {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(7, 13, 20, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .composer-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .composer-tools {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-attach-media {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-attach-media:hover {
+      background: rgba(0, 242, 254, 0.1);
+      border-color: var(--accent-cyan);
+    }
+
+    .monetize-toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.12);
+      border-radius: 34px;
+      cursor: pointer;
+      transition: .3s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    input:checked + .slider {
+      background: linear-gradient(135deg, var(--monetize-green), #05c581);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+
+    .btn-cascade {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
+      border: none;
+      color: #05131f;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.65rem 1.6rem;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 0 16px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-cascade:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(0, 242, 254, 0.55);
+    }
+
+    .stream-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+
+    .stream-card {
+      background: var(--card-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      cursor: pointer;
+    }
+
+    .creator-info h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .creator-info span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .btn-follow {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--accent-cyan);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-follow.following {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    .card-body-text {
+      padding: 0 1.4rem 1.2rem;
+      color: #d1e2f5;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .public-media-box {
+      margin: 0 1.4rem 1.4rem;
+      border-radius: 18px;
+      overflow: hidden;
+      max-height: 480px;
+      border: 1px solid var(--card-border);
+    }
+
+    .public-media-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gate-container {
+      position: relative;
+      margin: 0 1.4rem 1.4rem;
+      border-radius: 18px;
+      overflow: hidden;
+      min-height: 300px;
+      background: #0b1522;
+      border: 1px solid rgba(0, 242, 254, 0.2);
+    }
+
+    .media-content {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: filter 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s ease;
+    }
+
+    .media-content.blurred {
+      filter: blur(32px) brightness(0.55);
+      transform: scale(1.15);
+    }
+
+    .gate-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(7, 13, 20, 0.45) 0%, rgba(7, 13, 20, 0.88) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      transition: opacity 0.4s ease;
+    }
+
+    .gate-container.unlocked .media-content.blurred {
+      filter: blur(0px) brightness(1);
+      transform: scale(1);
+    }
+
+    .gate-container.unlocked .gate-overlay {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .gate-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(16, 231, 161, 0.15);
+      border: 1px solid var(--monetize-green);
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+      color: var(--monetize-green);
+      margin-bottom: 0.9rem;
+      box-shadow: 0 0 22px var(--monetize-glow);
+    }
+
+    .gate-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+
+    .gate-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      max-width: 320px;
+      margin-bottom: 1.3rem;
+      line-height: 1.5;
+    }
+
+    .btn-unlock {
+      background: linear-gradient(135deg, var(--monetize-green), #05c581);
+      color: #032117;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 0.75rem 2rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 24px var(--monetize-glow);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-unlock:hover {
+      transform: scale(1.03);
+    }
+
+    .card-actions {
+      padding: 0.9rem 1.4rem;
+      display: flex;
+      gap: 1.8rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .action-item:hover {
+      color: var(--accent-cyan);
+    }
+
+    .action-item.rippled {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .comments-drawer {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(5, 10, 17, 0.55);
+      padding: 1.2rem 1.4rem;
+    }
+
+    .comments-drawer.open {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .comment-bubble {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 0.75rem 0.95rem;
+    }
+
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+      font-size: 0.78rem;
+    }
+
+    .comment-author {
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .comment-time {
+      color: var(--text-muted);
+    }
+
+    .comment-text {
+      font-size: 0.9rem;
+      color: #e3edf8;
+      line-height: 1.45;
+    }
+
+    .comment-form {
+      display: flex;
+      gap: 0.65rem;
+    }
+
+    .comment-field {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      padding: 0.6rem 1.1rem;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .btn-comment-send {
+      background: var(--accent-cyan);
+      border: none;
+      color: #041421;
+      font-weight: 700;
+      padding: 0 1.2rem;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 9, 15, 0.85);
+      backdrop-filter: blur(14px);
+      z-index: 999;
+      display: none;
+      place-items: center;
+      padding: 1.5rem;
+    }
+
+    .modal-backdrop.open {
+      display: grid;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .pay-modal {
+      background: #0b1624;
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      border-radius: 26px;
+      max-width: 440px;
+      width: 100%;
+      padding: 2.2rem 2rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.4rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .price-pill {
+      display: inline-block;
+      background: rgba(16, 231, 161, 0.12);
+      border: 1px solid var(--monetize-green);
+      color: var(--monetize-green);
+      padding: 0.45rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.45rem;
+      margin: 1.2rem 0;
+    }
+
+    .in-app-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin: 1rem 0 1.4rem;
+      text-align: left;
+    }
+
+    .form-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .in-app-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .btn-pay-now {
+      width: 100%;
+      background: linear-gradient(135deg, var(--monetize-green), #05c581);
+      border: none;
+      color: #041f17;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 0.95rem;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 0 24px var(--monetize-glow);
+    }
+
+    .tip-chips {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin: 1.3rem 0;
+    }
+
+    .tip-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.5rem 1.1rem;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tip-chip.active {
+      background: var(--accent-cyan);
+      color: #05131f;
+      border-color: var(--accent-cyan);
+    }
+
+    /* Creator Hub */
+    .profile-hero {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      background: var(--card-glass);
+      border: 1px solid var(--card-border);
+    }
+
+    .profile-banner {
+      height: 140px;
+      background: linear-gradient(135deg, #091a28, #10334c, #0a253a);
+      position: relative;
+    }
+
+    .profile-details-wrapper {
+      padding: 0 1.8rem 1.8rem;
+      position: relative;
+    }
+
+    .avatar-large-container {
+      position: relative;
+      display: inline-block;
+      margin-top: -55px;
+      margin-bottom: 1.2rem;
+      cursor: pointer;
+    }
+
+    .avatar-large {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 4px solid var(--bg-abyss);
+      object-fit: cover;
+      box-shadow: 0 0 25px var(--accent-glow);
+      transition: filter 0.2s;
+    }
+
+    .avatar-large-container:hover .avatar-large {
+      filter: brightness(0.8);
+    }
+
+    .avatar-edit-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: var(--accent-cyan);
+      color: #04101a;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: bold;
+      border: 2px solid var(--bg-abyss);
+    }
+
+    .edit-form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* Filter banner when viewing a specific creator's stream */
+    .filter-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 242, 254, 0.08);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-banner.active {
+      display: flex;
+    }
+
+    .waterfall-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(14, 25, 41, 0.95);
+      border: 1px solid var(--accent-cyan);
+      padding: 0.85rem 1.8rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .waterfall-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Header with Real SPA Hash Links -->
+  <header>
+    <div class="nav-container">
+      <a href="#/flow" class="brand-logo">
+        <div class="logo-icon">🌊</div>
+        Waterfall
+      </a>
+
+      <nav class="nav-tabs">
+        <a href="#/flow" class="nav-link active" id="tab-flow">Flow</a>
+        <a href="#/hub" class="nav-link" id="tab-hub">Creator Hub</a>
+      </nav>
+
+      <a href="#/hub" class="profile-nav-trigger">
+        <img class="avatar-mini" id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Avatar" />
+      </a>
+    </div>
+  </header>
+
+  <main>
+    
+    <!-- VIEW 1: THE STREAM FEED -->
+    <div class="view-section active" id="view-stream">
+      
+      <!-- Creator Filter Banner (shows when visiting #/creator/...) -->
+      <div class="filter-banner" id="stream-filter-banner">
+        <div style="font-size: 0.9rem; color: #fff;">
+          Viewing drops by <span id="filter-creator-name" style="color: var(--accent-cyan); font-weight: 700;">Creator</span>
+        </div>
+        <a href="#/flow" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Show All Drops ✕</a>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer-card" id="composer-block">
+        <div class="composer-top">
+          <img class="avatar-mini" id="composer-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Avatar" />
+          <textarea class="composer-input" id="post-content" placeholder="Start a new ripple in the flow..."></textarea>
+        </div>
+
+        <input type="file" id="post-media-file-input" accept="image/*" style="display: none;" onchange="handlePostMediaFile(event)" />
+
+        <div class="media-preview-box" id="composer-media-preview">
+          <img id="composer-preview-img" src="" alt="Media Preview" />
+          <button class="btn-remove-media" onclick="removeAttachedMedia()">×</button>
+        </div>
+
+        <div class="composer-footer">
+          <div class="composer-tools">
+            <button class="btn-attach-media" onclick="triggerPostMediaUpload()">
+              📷 <span>Add Photo / Media</span>
+            </button>
+
+            <label class="monetize-toggle-group">
+              <div class="toggle-switch">
+                <input type="checkbox" id="monetize-check">
+                <span class="slider"></span>
+              </div>
+              <span>Lock Media ($4.99)</span>
+            </label>
+          </div>
+
+          <button class="btn-cascade" onclick="dropPost()">Drop Post</button>
+        </div>
+      </div>
+
+      <!-- Feed Container -->
+      <div class="stream-feed" id="stream-feed-container"></div>
+    </div>
+
+    <!-- VIEW 2: CREATOR HUB -->
+    <div class="view-section" id="view-hub">
+      <div class="profile-hero">
+        <div class="profile-banner"></div>
+        <div class="profile-details-wrapper">
+          
+          <div class="avatar-large-container" onclick="triggerProfilePhotoUpload()">
+            <img class="avatar-large" id="hub-avatar-preview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Avatar" />
+            <div class="avatar-edit-badge">📷</div>
+            <input type="file" id="profile-photo-file-input" accept="image/*" style="display: none;" onchange="handleProfilePhotoFile(event)" />
+          </div>
+
+          <div class="edit-form-grid">
+            <div>
+              <label class="form-label">Display Name</label>
+              <input type="text" class="in-app-input" id="input-display-name" style="width: 100%; margin-top: 0.35rem;" />
+            </div>
+
+            <div>
+              <label class="form-label">Handle</label>
+              <input type="text" class="in-app-input" id="input-handle" style="width: 100%; margin-top: 0.35rem;" />
+            </div>
+
+            <div>
+              <label class="form-label">Bio / Mission</label>
+              <textarea class="in-app-input" id="input-bio" style="width: 100%; min-height: 80px; margin-top: 0.35rem; resize: none;"></textarea>
+            </div>
+
+            <div>
+              <label class="form-label">Avatar Image URL (Optional)</label>
+              <input type="text" class="in-app-input" id="input-avatar-url" placeholder="https://..." style="width: 100%; margin-top: 0.35rem;" onchange="previewAvatarUrl(this.value)" />
+            </div>
+
+            <button class="btn-cascade" style="align-self: flex-start; margin-top: 0.5rem;" onclick="saveCreatorProfile()">Save Profile</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="composer-card" style="padding: 1.8rem;">
+        <h3 style="color: #fff; margin-bottom: 1.2rem; font-size: 1.15rem;">Your Stream Metrics</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 1.2rem; border-radius: 16px; text-align: center;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #fff;" id="hub-gross-earnings">$0.00</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Gross Volume</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 1.2rem; border-radius: 16px; text-align: center;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--monetize-green);" id="hub-net-earnings">$0.00</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">80% Net Payout</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 1.2rem; border-radius: 16px; text-align: center;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan);" id="hub-supporters-count">1</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Supporters</div>
+          </div>
+        </div>
+
+        <button class="btn-follow" onclick="resetDemoData()">Reset All Demo Data</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: PAYWALL -->
+  <div class="modal-backdrop" id="paywall-modal">
+    <div class="pay-modal">
+      <button class="modal-close" onclick="closePaywallModal()">×</button>
+      <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">🌊</div>
+      <h3 style="font-weight: 800; font-size: 1.35rem; color: #fff;">Direct Flow Checkout</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.3rem;">
+        Support <span id="pay-modal-creator" style="color: #fff; font-weight: 600;">Creator</span>
+      </p>
+
+      <div class="price-pill" id="pay-modal-price">$4.99</div>
+
+      <div class="in-app-form">
+        <label class="form-label">Integrated Card Terminal</label>
+        <input type="text" class="in-app-input" value="4242 •••• •••• 4242" />
+        <div style="display: flex; gap: 0.75rem;">
+          <input type="text" class="in-app-input" style="flex: 1;" value="12/28" />
+          <input type="text" class="in-app-input" style="flex: 1;" value="888" />
+        </div>
+      </div>
+
+      <p style="color: #647d9a; font-size: 0.78rem; margin-bottom: 1.2rem; line-height: 1.4;">
+        80% direct transfer to creator; 20% platform infrastructure fee.
+      </p>
+
+      <button class="btn-pay-now" id="btn-pay-confirm" onclick="processInAppPayment()">Confirm & Unlock Media</button>
+    </div>
+  </div>
+
+  <!-- MODAL: TIPPING -->
+  <div class="modal-backdrop" id="tip-modal">
+    <div class="pay-modal">
+      <button class="modal-close" onclick="closeTipModal()">×</button>
+      <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">⚡</div>
+      <h3 style="font-weight: 800; font-size: 1.35rem; color: #fff;">Tip Creator</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.3rem;">
+        Send instant ripple to <span id="tip-modal-creator" style="color: #fff; font-weight: 600;">Creator</span>
+      </p>
+
+      <div class="tip-chips">
+        <button class="tip-chip" onclick="selectTipAmount(1, this)">$1</button>
+        <button class="tip-chip active" onclick="selectTipAmount(3, this)">$3</button>
+        <button class="tip-chip" onclick="selectTipAmount(5, this)">$5</button>
+        <button class="tip-chip" onclick="selectTipAmount(10, this)">$10</button>
+      </div>
+
+      <button class="btn-pay-now" onclick="sendTip()">Send Tip Now</button>
+    </div>
+  </div>
+
+  <div class="waterfall-toast" id="toast"></div>
+
+  <script>
+    // --- 1. DEFAULT DATA ---
+    const DEFAULT_PROFILE = {
+      name: "Christopher Hammond",
+      handle: "@christopher",
+      bio: "Creator & founder building direct flow media systems. Dropping raw edits and updates directly to my audience.",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+    };
+
+    const DEFAULT_POSTS = [
+      {
+        id: "post-1",
+        creatorName: "Marcus Vance",
+        creatorHandle: "@marcusvance",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+        bodyText: "Just finished editing the unreleased film reel from the underground set. Premium drops only. Dive into the high-res flow below.",
+        isLocked: true,
+        price: "$4.99",
+        mediaUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+        ripples: 14,
+        userRippled: false,
+        followersCount: 3,
+        isFollowed: false,
+        comments: [
+          { author: "Elena Rostova", text: "The color grade on this sequence is crazy.", time: "18m ago" }
+        ]
+      },
+      {
+        id: "post-2",
+        creatorName: "Elena Rostova",
+        creatorHandle: "@elenarostova",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+        bodyText: "Direct monetized streaming without platform algorithms cutting off reach. The new waterfall architecture is officially alive.",
+        isLocked: false,
+        price: "Free",
+        mediaUrl: null,
+        ripples: 28,
+        userRippled: false,
+        followersCount: 5,
+        isFollowed: true,
+        comments: [
+          { author: "Christopher Hammond", text: "Single-page flow feels so much cleaner than standard apps.", time: "1h ago" }
+        ]
+      }
+    ];
+
+    // --- 2. STORAGE CONTROLLER ---
+    function getProfile() {
+      const p = localStorage.getItem('waterfall_v5_profile');
+      return p ? JSON.parse(p) : DEFAULT_PROFILE;
+    }
+
+    function saveProfile(p) {
+      localStorage.setItem('waterfall_v5_profile', JSON.stringify(p));
+    }
+
+    function loadPosts() {
+      const saved = localStorage.getItem('waterfall_v5_posts');
+      return saved ? JSON.parse(saved) : DEFAULT_POSTS;
+    }
+
+    function savePosts(posts) {
+      localStorage.setItem('waterfall_v5_posts', JSON.stringify(posts));
+    }
+
+    function getUnlockedPosts() {
+      const unlocked = localStorage.getItem('waterfall_v5_unlocked');
+      return unlocked ? JSON.parse(unlocked) : [];
+    }
+
+    function markPostUnlocked(postId) {
+      const unlocked = getUnlockedPosts();
+      if (!unlocked.includes(postId)) {
+        unlocked.push(postId);
+        localStorage.setItem('waterfall_v5_unlocked', JSON.stringify(unlocked));
+      }
+    }
+
+    // --- 3. SPA ROUTING ENGINE (Pure Client-Side) ---
+    let currentCreatorFilter = null;
+
+    function handleRoute() {
+      const hash = window.location.hash || '#/flow';
+      const navFlow = document.getElementById('tab-flow');
+      const navHub = document.getElementById('tab-hub');
+      const viewStream = document.getElementById('view-stream');
+      const viewHub = document.getElementById('view-hub');
+      const filterBanner = document.getElementById('stream-filter-banner');
+      const composerBlock = document.getElementById('composer-block');
+
+      // Reset tabs & views
+      navFlow.classList.remove('active');
+      navHub.classList.remove('active');
+      viewStream.classList.remove('active');
+      viewHub.classList.remove('active');
+
+      if (hash.startsWith('#/creator/')) {
+        // Dynamic creator route: #/creator/@marcusvance
+        const handle = decodeURIComponent(hash.replace('#/creator/', ''));
+        currentCreatorFilter = handle;
+        viewStream.classList.add('active');
+        navFlow.classList.add('active');
+        filterBanner.classList.add('active');
+        composerBlock.style.display = 'none'; // Only show creator's stream
+        document.getElementById('filter-creator-name').innerText = handle;
+      } else if (hash === '#/hub') {
+        currentCreatorFilter = null;
+        viewHub.classList.add('active');
+        navHub.classList.add('active');
+        filterBanner.classList.remove('active');
+        composerBlock.style.display = 'block';
+        syncProfileUI();
+      } else {
+        // Default: #/flow
+        currentCreatorFilter = null;
+        viewStream.classList.add('active');
+        navFlow.classList.add('active');
+        filterBanner.classList.remove('active');
+        composerBlock.style.display = 'block';
+      }
+
+      renderFeed();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- 4. PROFILE INITIALIZER & EDITOR ---
+    function syncProfileUI() {
+      const p = getProfile();
+      document.getElementById('header-avatar').src = p.avatar;
+      document.getElementById('composer-avatar').src = p.avatar;
+      document.getElementById('hub-avatar-preview').src = p.avatar;
+      document.getElementById('input-display-name').value = p.name;
+      document.getElementById('input-handle').value = p.handle;
+      document.getElementById('input-bio').value = p.bio;
+      document.getElementById('input-avatar-url').value = p.avatar;
+
+      const unlocked = getUnlockedPosts();
+      const gross = unlocked.length * 4.99;
+      const net = gross * 0.8;
+      document.getElementById('hub-gross-earnings').innerText = `$${gross.toFixed(2)}`;
+      document.getElementById('hub-net-earnings').innerText = `$${net.toFixed(2)}`;
+    }
+
+    function triggerProfilePhotoUpload() {
+      document.getElementById('profile-photo-file-input').click();
+    }
+
+    function handleProfilePhotoFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const newImg = e.target.result;
+          document.getElementById('hub-avatar-preview').src = newImg;
+          document.getElementById('input-avatar-url').value = newImg;
+          showToast("📷 Photo loaded. Click 'Save Profile' to lock it in.");
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function previewAvatarUrl(url) {
+      if (url.trim()) {
+        document.getElementById('hub-avatar-preview').src = url;
+      }
+    }
+
+    function saveCreatorProfile() {
+      const updated = {
+        name: document.getElementById('input-display-name').value.trim() || DEFAULT_PROFILE.name,
+        handle: document.getElementById('input-handle').value.trim() || DEFAULT_PROFILE.handle,
+        bio: document.getElementById('input-bio').value.trim(),
+        avatar: document.getElementById('hub-avatar-preview').src
+      };
+
+      saveProfile(updated);
+      syncProfileUI();
+      renderFeed();
+      showToast("✨ Creator Profile updated!");
+    }
+
+    // --- 5. COMPOSER ATTACHMENTS ---
+    let activePostAttachedMedia = null;
+
+    function triggerPostMediaUpload() {
+      document.getElementById('post-media-file-input').click();
+    }
+
+    function handlePostMediaFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          activePostAttachedMedia = e.target.result;
+          document.getElementById('composer-preview-img').src = activePostAttachedMedia;
+          document.getElementById('composer-media-preview').style.display = 'block';
+          showToast("📷 Media attached to drop.");
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeAttachedMedia() {
+      activePostAttachedMedia = null;
+      document.getElementById('composer-preview-img').src = '';
+      document.getElementById('composer-media-preview').style.display = 'none';
+      document.getElementById('post-media-file-input').value = '';
+    }
+
+    // --- 6. RENDER FEED (With Dynamic Creator Filtering) ---
+    function renderFeed() {
+      const posts = loadPosts();
+      const unlockedPosts = getUnlockedPosts();
+      const feedContainer = document.getElementById('stream-feed-container');
+
+      // Filter if viewing a specific creator
+      const displayedPosts = currentCreatorFilter 
+        ? posts.filter(p => p.creatorHandle === currentCreatorFilter)
+        : posts;
+
+      if (displayedPosts.length === 0) {
+        feedContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No drops in this stream yet.</p>`;
+        return;
+      }
+
+      feedContainer.innerHTML = displayedPosts.map(post => {
+        const isUnlocked = unlockedPosts.includes(post.id) || !post.isLocked;
+
+        let mediaHtml = '';
+        if (post.mediaUrl) {
+          if (post.isLocked) {
+            mediaHtml = `
+              <div class="gate-container ${isUnlocked ? 'unlocked' : ''}" id="gate-${post.id}">
+                <div class="media-content ${isUnlocked ? '' : 'blurred'}" style="background-image: url('${post.mediaUrl}')"></div>
+                <div class="gate-overlay">
+                  <div class="gate-icon">🔒</div>
+                  <h3 class="gate-title">Waterfall Exclusive Gate</h3>
+                  <p class="gate-desc">Unlock direct drop from ${post.creatorName}.</p>
+                  <button class="btn-unlock" onclick="openPaywallModal('${post.id}', '${post.creatorName}', '${post.price}')">
+                    <span>Unlock Flow</span> • ${post.price}
+                  </button>
+                </div>
+              </div>
+            `;
+          } else {
+            mediaHtml = `
+              <div class="public-media-box">
+                <img src="${post.mediaUrl}" alt="Post Media Drop" />
+              </div>
+            `;
+          }
+        }
+
+        const commentsCount = post.comments ? post.comments.length : 0;
+        const commentsListHtml = (post.comments || []).map(c => `
+          <div class="comment-bubble">
+            <div class="comment-meta">
+              <span class="comment-author">${escapeHtml(c.author)}</span>
+              <span class="comment-time">${escapeHtml(c.time)}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(c.text)}</div>
+          </div>
+        `).join('');
+
+        return `
+          <article class="stream-card" id="${post.id}">
+            <div class="card-header">
+              <div class="header-left" onclick="window.location.hash='#/creator/${encodeURIComponent(post.creatorHandle || '@creator')}'">
+                <img class="avatar-mini" src="${post.avatar}" alt="Avatar" />
+                <div class="creator-info">
+                  <h4>${post.creatorName}</h4>
+                  <span>${post.creatorHandle || '@creator'} • ${post.followersCount || 1} Supporters</span>
+                </div>
+              </div>
+              <button class="btn-follow ${post.isFollowed ? 'following' : ''}" onclick="toggleFollow('${post.id}')">
+                ${post.isFollowed ? 'Following' : '+ Follow'}
+              </button>
+            </div>
+
+            <div class="card-body-text">${escapeHtml(post.bodyText)}</div>
+
+            ${mediaHtml}
+
+            <div class="card-actions">
+              <div class="action-item ${post.userRippled ? 'rippled' : ''}" onclick="toggleRipple('${post.id}')">
+                💧 <span>${post.ripples}</span> Ripples
+              </div>
+              <div class="action-item" onclick="toggleComments('${post.id}')">
+                💬 <span>${commentsCount}</span> Comments
+              </div>
+              <div class="action-item" onclick="openTipModal('${post.creatorName}')">
+                ⚡ Tip Creator
+              </div>
+            </div>
+
+            <div class="comments-drawer" id="comments-${post.id}">
+              <div class="comments-list" id="comments-list-${post.id}">
+                ${commentsListHtml}
+              </div>
+              <div class="comment-form">
+                <input type="text" class="comment-field" id="input-${post.id}" placeholder="Write a comment..." onkeydown="handleCommentKey(event, '${post.id}')" />
+                <button class="btn-comment-send" onclick="addComment('${post.id}')">Send</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // --- 7. ACTIONS & POST CREATION ---
+    function dropPost() {
+      const input = document.getElementById('post-content');
+      const text = input.value.trim();
+      const isLocked = document.getElementById('monetize-check').checked;
+
+      if (!text && !activePostAttachedMedia) {
+        showToast("⚠️ Add some text or attach media to drop.");
+        return;
+      }
+
+      const profile = getProfile();
+      const posts = loadPosts();
+
+      const newPost = {
+        id: "post-" + Date.now(),
+        creatorName: profile.name,
+        creatorHandle: profile.handle,
+        avatar: profile.avatar,
+        bodyText: text,
+        isLocked: isLocked,
+        price: "$4.99",
+        mediaUrl: activePostAttachedMedia,
+        ripples: 1,
+        userRippled: true,
+        followersCount: 1,
+        isFollowed: false,
+        comments: []
+      };
+
+      posts.unshift(newPost);
+      savePosts(posts);
+
+      input.value = '';
+      removeAttachedMedia();
+      document.getElementById('monetize-check').checked = false;
+      renderFeed();
+      showToast("🌊 Dropped new post into the flow!");
+    }
+
+    function toggleFollow(postId) {
+      const posts = loadPosts();
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      post.isFollowed = !post.isFollowed;
+      post.followersCount = (post.followersCount || 1) + (post.isFollowed ? 1 : -1);
+
+      savePosts(posts);
+      renderFeed();
+      showToast(post.isFollowed ? `✨ Following ${post.creatorName}` : `Unfollowed ${post.creatorName}`);
+    }
+
+    function toggleRipple(postId) {
+      const posts = loadPosts();
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      if (!post.userRippled) {
+        post.ripples += 1;
+        post.userRippled = true;
+        showToast("💧 Added your ripple to the stream!");
+      } else {
+        post.ripples -= 1;
+        post.userRippled = false;
+      }
+
+      savePosts(posts);
+      renderFeed();
+    }
+
+    function toggleComments(postId) {
+      const drawer = document.getElementById(`comments-${postId}`);
+      if (!drawer) return;
+      const isOpen = drawer.classList.contains('open');
+      drawer.classList.toggle('open', !isOpen);
+      if (!isOpen) {
+        const input = document.getElementById(`input-${postId}`);
+        if (input) input.focus();
+      }
+    }
+
+    function handleCommentKey(e, postId) {
+      if (e.key === 'Enter') addComment(postId);
+    }
+
+    function addComment(postId) {
+      const input = document.getElementById(`input-${postId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const posts = loadPosts();
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const profile = getProfile();
+      if (!post.comments) post.comments = [];
+
+      post.comments.push({
+        author: profile.name,
+        text: text,
+        time: "Just now"
+      });
+
+      savePosts(posts);
+      input.value = '';
+      renderFeed();
+      document.getElementById(`comments-${postId}`).classList.add('open');
+      showToast("💬 Comment posted!");
+    }
+
+    // --- 8. IN-APP CHECKOUT & TIPPING ---
+    let activeCheckoutPostId = null;
+
+    function openPaywallModal(postId, creator, price) {
+      activeCheckoutPostId = postId;
+      document.getElementById('pay-modal-creator').innerText = creator;
+      document.getElementById('pay-modal-price').innerText = price;
+      document.getElementById('paywall-modal').classList.add('open');
+    }
+
+    function closePaywallModal() {
+      document.getElementById('paywall-modal').classList.remove('open');
+    }
+
+    function processInAppPayment() {
+      const btn = document.getElementById('btn-pay-confirm');
+      btn.innerText = "Securing on Stripe...";
+      btn.disabled = true;
+
+      setTimeout(() => {
+        markPostUnlocked(activeCheckoutPostId);
+        btn.innerText = "Confirm & Unlock Media";
+        btn.disabled = false;
+        closePaywallModal();
+        renderFeed();
+        syncProfileUI();
+        showToast("🔓 Media unlocked! $3.99 to Creator (80%), $1.00 Platform (20%).");
+      }, 700);
+    }
+
+    let activeTipAmount = 3;
+
+    function openTipModal(creator) {
+      document.getElementById('tip-modal-creator').innerText = creator;
+      document.getElementById('tip-modal').classList.add('open');
+    }
+
+    function closeTipModal() {
+      document.getElementById('tip-modal').classList.remove('open');
+    }
+
+    function selectTipAmount(amt, el) {
+      activeTipAmount = amt;
+      document.querySelectorAll('.tip-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function sendTip() {
+      closeTipModal();
+      showToast(`⚡ Sent $${activeTipAmount}.00 tip!`);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function resetDemoData() {
+      localStorage.removeItem('waterfall_v5_posts');
+      localStorage.removeItem('waterfall_v5_unlocked');
+      localStorage.removeItem('waterfall_v5_profile');
+      window.location.hash = '#/flow';
+      syncProfileUI();
+      renderFeed();
+      showToast("Reset all demo data to a clean state.");
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.innerText = str;
+      return div.innerHTML;
+    }
+
+    // --- 9. SPA EVENT LISTENERS ---
+    window.addEventListener('hashchange', handleRoute);
+    window.addEventListener('DOMContentLoaded', () => {
+      syncProfileUI();
+      handleRoute();
+    });
+  </script>
+</body>
+</html>
