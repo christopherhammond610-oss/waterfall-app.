@@ -1,64 +1,120 @@
 "use client";
 
-import { useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useAppState } from "@/context/AppStateContext";
 import { useToast } from "@/context/ToastContext";
-import { LOCKED_PRICE } from "@/lib/defaults";
-import { readFileAsDataUrl } from "@/lib/files";
+import { LIMITS, LOCKED_PRICE } from "@/lib/defaults";
+import { avatarSrc, errorMessage } from "@/lib/format";
+import { mediaKind, validateMedia } from "@/lib/media";
 
 export default function Composer() {
-  const { profile, addPost } = useAppState();
+  const { authReady, userId, profile, addPost } = useAppState();
   const showToast = useToast();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [text, setText] = useState("");
-  const [media, setMedia] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setMedia(await readFileAsDataUrl(file));
+  // Free the local preview when it is replaced or the composer unmounts.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  if (!authReady) return null;
+
+  if (!userId) {
+    return (
+      <div className="composer-card composer-signin">
+        <span>Sign in to drop posts into the flow.</span>
+        <Link href="/login" className="btn-cascade">
+          Sign In
+        </Link>
+      </div>
+    );
+  }
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0];
+    if (!picked) return;
+    const invalid = validateMedia(picked);
+    if (invalid) {
+      showToast(`⚠️ ${invalid}`);
+      e.target.value = "";
+      return;
+    }
+    setFile(picked);
+    setPreviewUrl(URL.createObjectURL(picked));
     showToast("📷 Media attached to drop.");
   }
 
   function removeMedia() {
-    setMedia(null);
+    setFile(null);
+    setPreviewUrl(null);
+    setIsLocked(false);
     if (fileInput.current) fileInput.current.value = "";
   }
 
-  function dropPost() {
-    const trimmed = text.trim();
-    if (!trimmed && !media) {
+  async function dropPost() {
+    if (busy) return;
+    if (!text.trim() && !file) {
       showToast("⚠️ Add some text or attach media to drop.");
       return;
     }
-    addPost({ text: trimmed, mediaUrl: media, isLocked });
-    setText("");
-    removeMedia();
-    setIsLocked(false);
-    showToast("🌊 Dropped new post into the flow!");
+    setBusy(true);
+    try {
+      await addPost({ text, file, isLocked: isLocked && canLock });
+      setText("");
+      removeMedia();
+      showToast("🌊 Dropped new post into the flow!");
+    } catch (error) {
+      showToast(`⚠️ ${errorMessage(error)}`);
+    } finally {
+      setBusy(false);
+    }
   }
+
+  const isVideo = file ? mediaKind(file) === "video" : false;
+  // Selling requires active Stripe payouts (also enforced by the database).
+  const canSell = !!profile?.accepts_payments;
+  const canLock = !!file && canSell;
 
   return (
     <div className="composer-card">
       <div className="composer-top">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="avatar-mini" src={profile.avatar} alt="Avatar" />
+        <img className="avatar-mini" src={avatarSrc(profile)} alt="Avatar" />
         <textarea
           className="composer-input"
           placeholder="Start a new ripple in the flow..."
           value={text}
+          maxLength={LIMITS.post}
           onChange={(e) => setText(e.target.value)}
         />
       </div>
 
-      <input ref={fileInput} type="file" accept="image/*" className="hidden-input" onChange={handleFile} />
+      <input
+        ref={fileInput}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden-input"
+        onChange={handleFile}
+      />
 
-      <div className={`media-preview-box${media ? " visible" : ""}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {media && <img src={media} alt="Media Preview" />}
-        <button className="btn-remove-media" onClick={removeMedia}>
+      <div className={`media-preview-box${previewUrl ? " visible" : ""}`}>
+        {previewUrl &&
+          (isVideo ? (
+            <video src={previewUrl} controls muted playsInline />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={previewUrl} alt="Media Preview" />
+          ))}
+        <button className="btn-remove-media" onClick={removeMedia} aria-label="Remove media">
           ×
         </button>
       </div>
@@ -69,17 +125,31 @@ export default function Composer() {
             📷 <span>Add Photo / Media</span>
           </button>
 
-          <label className="monetize-toggle-group">
+          <label
+            className={`monetize-toggle-group${canLock ? "" : " disabled"}`}
+            title={!canSell ? "Connect payouts in your Creator Hub to sell locked drops" : !file ? "Attach media to lock it" : undefined}
+          >
             <div className="toggle-switch">
-              <input type="checkbox" checked={isLocked} onChange={(e) => setIsLocked(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={isLocked && canLock}
+                disabled={!canLock}
+                onChange={(e) => setIsLocked(e.target.checked)}
+              />
               <span className="slider"></span>
             </div>
             <span>Lock Media ({LOCKED_PRICE})</span>
           </label>
         </div>
 
-        <button className="btn-cascade" onClick={dropPost}>
-          Drop Post
+        {file && !canSell && (
+          <Link href="/hub" className="composer-hint">
+            💸 Set up payouts to sell locked drops
+          </Link>
+        )}
+
+        <button className="btn-cascade" onClick={dropPost} disabled={busy}>
+          {busy ? "Dropping..." : "Drop Post"}
         </button>
       </div>
     </div>

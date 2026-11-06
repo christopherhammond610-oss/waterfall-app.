@@ -964,3 +964,205 @@ input:checked + .slider:before {
 .hidden-input {
   display: none;
 }
+
+/* ------------------------------------------------------------------
+   Supabase integration additions (auth, video, loading states).
+   Built from the same tokens as the original design.
+------------------------------------------------------------------ */
+.avatar-placeholder {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-signin,
+a.btn-cascade {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.media-preview-box video {
+  width: 100%;
+  max-height: 260px;
+  display: block;
+  background: #000;
+}
+
+.public-media-box video {
+  width: 100%;
+  max-height: 480px;
+  display: block;
+  background: #000;
+}
+
+.monetize-toggle-group.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-cascade:disabled,
+.btn-pay-now:disabled,
+.btn-comment-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.composer-signin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auth-card .btn-cascade {
+  align-self: flex-start;
+}
+
+.auth-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.auth-prompt .metrics-title {
+  margin-bottom: 0;
+}
+
+.auth-switch {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-cyan);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.auth-prompt .auth-switch {
+  align-self: center;
+}
+
+.auth-error {
+  color: #ff7a90;
+  font-size: 0.85rem;
+}
+
+/* Stripe checkout + payouts */
+.checkout-note {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.btn-unlock:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.composer-hint {
+  color: var(--monetize-green);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.payouts-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.payouts-card .metrics-title {
+  margin-bottom: 0;
+}
+
+.payouts-text {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.payouts-ready {
+  color: var(--monetize-green);
+  font-weight: 600;
+}
+
+.btn-follow:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payouts-country {
+  width: 100%;
+  max-width: 320px;
+}
+
+.payouts-note {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* Dark dropdown list for selects styled as inputs. */
+select.in-app-input {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+select.in-app-input option {
+  background: #0b1624;
+  color: #fff;
+}
+
+/* Show / hide password toggle */
+.password-field {
+  position: relative;
+}
+
+.password-field .in-app-input {
+  width: 100%;
+  padding-right: 2.9rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  padding: 0.35rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover,
+.password-toggle[aria-pressed="true"] {
+  color: var(--accent-cyan);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 1px;
+}

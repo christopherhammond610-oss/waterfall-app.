@@ -1,27 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { CREATOR_SHARE } from "@/lib/defaults";
 import Modal from "./Modal";
 
 interface Props {
   creatorName: string;
   price: string;
   onClose: () => void;
-  /** Called once payment succeeds. Stripe Checkout will plug in here. */
-  onPaid: () => void;
+  /** Starts Stripe Checkout (navigates away on success, throws on failure). */
+  onCheckout: () => Promise<void>;
 }
 
-const SIMULATED_PAYMENT_MS = 700;
+const CREATOR_PERCENT = Math.round(CREATOR_SHARE * 100);
 
-export default function PaywallModal({ creatorName, price, onClose, onPaid }: Props) {
-  const [processing, setProcessing] = useState(false);
+export default function PaywallModal({ creatorName, price, onClose, onCheckout }: Props) {
+  const [redirecting, setRedirecting] = useState(false);
 
-  function pay() {
-    setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      onPaid();
-    }, SIMULATED_PAYMENT_MS);
+  async function pay() {
+    setRedirecting(true);
+    try {
+      await onCheckout();
+    } catch {
+      setRedirecting(false);
+    }
   }
 
   return (
@@ -35,18 +37,19 @@ export default function PaywallModal({ creatorName, price, onClose, onPaid }: Pr
       <div className="price-pill">{price}</div>
 
       <div className="in-app-form">
-        <label className="form-label">Integrated Card Terminal</label>
-        <input type="text" className="in-app-input" defaultValue="4242 •••• •••• 4242" />
-        <div className="card-row">
-          <input type="text" className="in-app-input" defaultValue="12/28" />
-          <input type="text" className="in-app-input" defaultValue="888" />
-        </div>
+        <label className="form-label">Secure Payment</label>
+        <p className="checkout-note">
+          🔒 You&apos;ll pay on Stripe&apos;s secure checkout page. Card details go straight to Stripe and are
+          never stored by Waterfall.
+        </p>
       </div>
 
-      <p className="modal-fine-print">80% direct transfer to creator; 20% platform infrastructure fee.</p>
+      <p className="modal-fine-print">
+        {CREATOR_PERCENT}% direct transfer to creator; {100 - CREATOR_PERCENT}% platform infrastructure fee.
+      </p>
 
-      <button className="btn-pay-now" onClick={pay} disabled={processing}>
-        {processing ? "Securing on Stripe..." : "Confirm & Unlock Media"}
+      <button className="btn-pay-now" onClick={pay} disabled={redirecting}>
+        {redirecting ? "Opening Stripe..." : "Continue to Secure Checkout"}
       </button>
     </Modal>
   );
