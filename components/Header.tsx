@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { useAppState } from "@/context/AppStateContext";
+import { avatarSrc } from "@/lib/format";
 import NavTabs, { NavTabsView } from "./NavTabs";
 
 export default function Header() {
   const router = useRouter();
-  const { profile } = useAppState();
+  const { authReady, userId, profile } = useAppState();
 
   // Keep old hash links from the single-file version working (#/hub, #/creator/@x).
   useEffect(() => {
@@ -29,10 +30,18 @@ export default function Header() {
           <NavTabs />
         </Suspense>
 
-        <Link href="/hub" className="profile-nav-trigger">
-          {/* eslint-disable-next-line @next/next/no-img-element -- user avatars can be any URL or a data URL */}
-          <img className="avatar-mini" src={profile.avatar} alt="Avatar" />
-        </Link>
+        {!authReady ? (
+          <span className="avatar-mini avatar-placeholder" aria-hidden="true" />
+        ) : userId ? (
+          <Link href="/hub" className="profile-nav-trigger">
+            {/* eslint-disable-next-line @next/next/no-img-element -- user avatars can be any URL */}
+            <img className="avatar-mini" src={avatarSrc(profile)} alt="Your profile" />
+          </Link>
+        ) : (
+          <Link href="/login" className="btn-follow nav-signin">
+            Sign In
+          </Link>
+        )}
       </div>
     </header>
   );
