@@ -17,6 +17,7 @@ export default function Composer() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [showPayoutHint, setShowPayoutHint] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Free the local preview when it is replaced or the composer unmounts.
@@ -56,8 +57,18 @@ export default function Composer() {
   function removeMedia() {
     setFile(null);
     setPreviewUrl(null);
-    setIsLocked(false);
     if (fileInput.current) fileInput.current.value = "";
+  }
+
+  // The toggle stays clickable and explains what's missing, instead of silently greying out.
+  function handleLockToggle(checked: boolean) {
+    if (checked && !canSell) {
+      setShowPayoutHint(true);
+      showToast("💸 Finish your Stripe payout setup in the Creator Hub to sell locked drops.");
+      return;
+    }
+    setIsLocked(checked);
+    if (checked && !file) showToast("📷 Now attach the photo or video you want to lock.");
   }
 
   async function dropPost() {
@@ -66,10 +77,15 @@ export default function Composer() {
       showToast("⚠️ Add some text or attach media to drop.");
       return;
     }
+    if (isLocked && !file) {
+      showToast("📷 Attach a photo or video to lock, or turn off Lock Media.");
+      return;
+    }
     setBusy(true);
     try {
-      await addPost({ text, file, isLocked: isLocked && canLock });
+      await addPost({ text, file, isLocked: isLocked && canSell });
       setText("");
+      setIsLocked(false);
       removeMedia();
       showToast("🌊 Dropped new post into the flow!");
     } catch (error) {
@@ -82,7 +98,6 @@ export default function Composer() {
   const isVideo = file ? mediaKind(file) === "video" : false;
   // Selling requires active Stripe payouts (also enforced by the database).
   const canSell = !!profile?.accepts_payments;
-  const canLock = !!file && canSell;
 
   return (
     <div className="composer-card">
@@ -125,16 +140,12 @@ export default function Composer() {
             📷 <span>Add Photo / Media</span>
           </button>
 
-          <label
-            className={`monetize-toggle-group${canLock ? "" : " disabled"}`}
-            title={!canSell ? "Connect payouts in your Creator Hub to sell locked drops" : !file ? "Attach media to lock it" : undefined}
-          >
+          <label className="monetize-toggle-group">
             <div className="toggle-switch">
               <input
                 type="checkbox"
-                checked={isLocked && canLock}
-                disabled={!canLock}
-                onChange={(e) => setIsLocked(e.target.checked)}
+                checked={isLocked && canSell}
+                onChange={(e) => handleLockToggle(e.target.checked)}
               />
               <span className="slider"></span>
             </div>
@@ -142,9 +153,9 @@ export default function Composer() {
           </label>
         </div>
 
-        {file && !canSell && (
+        {!canSell && (showPayoutHint || file) && (
           <Link href="/hub" className="composer-hint">
-            💸 Set up payouts to sell locked drops
+            💸 Finish payout setup to sell locked drops →
           </Link>
         )}
 
